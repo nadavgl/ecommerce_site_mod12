@@ -4,19 +4,28 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 // The `/api/products` endpoint
 
 // get all products
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   // find all products
   // be sure to include its associated Category and Tag data
+  const products = await Product.findAll({
+    include:[Category]
+  })
 });
 
 // get one product
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   // find a single product by its `id`
   // be sure to include its associated Category and Tag data
+  const productId = await Product.findAll({
+    include:[Product, ProductTag]
+  })
+  response.json(productId)
 });
 
 // create new product
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
+  const formData = request.body
+  const product = await Product.create(formData)
   /* req.body should look like this...
     {
       product_name: "Basketball",
