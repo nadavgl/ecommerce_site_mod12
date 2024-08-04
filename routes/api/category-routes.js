@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { Sequelize, ValidationError } = require('sequelize');
 const { Category, Product } = require('../../models');
 
 // The `/api/categories` endpoint
@@ -21,10 +22,10 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   // find one category by its `id` value
   try {// be sure to include its associated Products
-    const iD = await Category.findAll({
-      include: [{ Product }]
+    const iD = await Category.findByPk(req.params.id, {
+      include: [{ model: Product }]
     })
-    response.json(iD)
+    res.json(iD)
   } catch (error) {
     console.log('error', error)
     res.status(500).json(error)
@@ -49,29 +50,45 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   // update a category by its `id` value
-  const category = await Category.update(
-    request.body,
-    {
-      where:{
-        id: request.params.category_id
-      },
-      returning: true,
-      plain: true
 
-    })
+  try {
+    const category = await Category.update(
+      req.body,
+      {
+        where: {
+          id: req.params.id
+        },
+        returning: true,
+        plain: true
+
+      })
     res.json(category)
+  } catch (error) {
+    if(error instanceof ValidationError){
+      res.status(400).json(error)
+      return 
+    }
+    console.log('error', error)
+    res.status(500).json(error)
+  }
+
 });
 
 router.delete('/:id', async (req, res) => {
   // delete a category by its `id` value
-  await Category.destroy({
-    where:{
-      id: req.params.category_id
-    }
-  })
-  res.json({
-    message: 'Category deleted sucessfully'
-  })
-});
+  try {
+    await Category.destroy({
+      where: {
+        id: req.params.id
+      }
+    })
+    res.json({
+      message: 'Category deleted sucessfully'
+    })
+  } catch (error) {
+    console.log('error', error)
+    res.status(500).json(error)
+  }
+})
 
 module.exports = router;
